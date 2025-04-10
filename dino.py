@@ -23,8 +23,18 @@ char_slide_img = pygame.transform.scale(char_slide_img, (200, 250))
 # 공룡 위치(논리적 위치 기준)
 dino = pygame.Rect(50, HEIGHT - 60, 60, 60)
 
-# 장애물
-obstacle = pygame.Rect(WIDTH, HEIGHT - 60, 40, 60)
+# 초기 장애물 설정
+def create_obstacle():
+    kind = random.choice(["ground", "air"])
+    if kind == "ground":  # 점프로 넘는 장애물
+        obstacle = pygame.Rect(WIDTH, HEIGHT - 60, 40, 60)  # 바닥에 붙은 장애물
+        obstacle_hitbox = pygame.Rect(WIDTH + 5, HEIGHT - 55, 30, 40)
+    else:  # 슬라이딩으로 통과하는 장애물 (공중)
+        obstacle = pygame.Rect(WIDTH, HEIGHT - 130, 40, 30)  # 위에 떠 있는 장애물
+        obstacle_hitbox = pygame.Rect(WIDTH + 5, HEIGHT - 185, 30, 20)
+    return kind, obstacle, obstacle_hitbox
+
+obstacle_type, obstacle, obstacle_hitbox = create_obstacle()
 obstacle_speed = 7
 
 # 점프 관련 변수
@@ -62,7 +72,7 @@ while running:
             is_jumping = False
             velocity = 0
 
-    # 3. 이미지 상태 선택 + 실제 위치 보정
+    # 3. 공룡 이미지 상태
     if is_jumping:
         active_img = char_jump_img
     elif is_sliding:
@@ -70,29 +80,43 @@ while running:
     else:
         active_img = char_run_img
 
-    draw_y = dino.y - active_img.get_height() + dino.height
+    draw_y = dino.y - active_img.get_height() + dino.height + 20
     screen.blit(active_img, (dino.x, draw_y))
 
-    # 4. 히트박스 생성 (상태에 따라 위치 보정)
+    # 4. 공룡 히트박스
     if is_sliding:
-        hitbox = pygame.Rect(dino.x + 50, draw_y + 190, 60, 40) 
-    else:    
-        hitbox = pygame.Rect(dino.x + 50, draw_y + 130, 60, 60)
-    pygame.draw.rect(screen, (255, 0, 0), hitbox, 2)  # 히트박스 시각화
+        hitbox = pygame.Rect(dino.x + 50, draw_y + 140, 60, 90)
+    else:
+        hitbox = pygame.Rect(dino.x + 50, draw_y + 60, 60, 90)
+    
 
     # 5. 장애물 이동 및 재생성
     obstacle.x -= obstacle_speed
+    obstacle_hitbox.x = obstacle.x + 5  # 오프셋 유지
+    obstacle_hitbox.y = obstacle.y + 10
+
     if obstacle.right < 0:
-        obstacle.x = WIDTH + random.randint(100, 300)
+        obstacle_type, obstacle, obstacle_hitbox = create_obstacle()
 
-    pygame.draw.rect(screen, (0, 0, 0), obstacle)
-
+    pygame.draw.rect(screen, (0, 0, 0), obstacle)            # 장애물 시각화
+    
+    
+    # pygame.draw.rect(screen, (0, 0, 255), obstacle_hitbox, 2)  # 장애물 히트박스 시각화
+    # pygame.draw.rect(screen, (255, 0, 0), hitbox, 2) # 공룡 히트박스 시각화
+    
+    
     # 6. 충돌 판정
-    if hitbox.colliderect(obstacle):
-        print("충돌!")
-        running = False
+    if hitbox.colliderect(obstacle_hitbox):
+        if obstacle_type == "air" and is_sliding:
+            pass  # 슬라이딩으로 통과 성공
+        elif obstacle_type == "ground" and is_jumping:
+            pass  # 점프로 회피 성공
+        else:
+            print("충돌!")
+            running = False
 
     pygame.display.flip()
     clock.tick(60)
 
 pygame.quit()
+
