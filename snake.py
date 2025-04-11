@@ -15,7 +15,7 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
 # 게임 단위 설정
-size = 30
+size = 20
 speed = size  # 한 번에 이동할 거리 = 격자 크기와 동일
 
 # 초기 뱀 설정
@@ -33,6 +33,8 @@ food_x, food_y = new_food()
 
 # 폰트
 font = pygame.font.SysFont(None, 72)
+
+is_game_over = False
 
 running = True
 while running:
@@ -77,7 +79,7 @@ while running:
         screen.blit(text, (250, 250))
         pygame.display.flip()
         pygame.time.delay(2000)
-        break
+        is_game_over = True
 
     # 자기 자신과 충돌 감지 (머리는 제외)
     if (x, y) in snake[:-1]:
@@ -85,7 +87,7 @@ while running:
         screen.blit(text, (220, 250))
         pygame.display.flip()
         pygame.time.delay(2000)
-        break
+        is_game_over = True
 
     # 먹이 그리기
     pygame.draw.rect(screen, RED, (food_x, food_y, size, size))
@@ -94,7 +96,29 @@ while running:
     for sx, sy in snake:
         pygame.draw.rect(screen, GREEN, (sx, sy, size, size))
 
+    if is_game_over:
+        font = pygame.font.SysFont(None, 48)
+        text = font.render("Press Any key to Restart", True, (255, 0, 0))
+        screen.fill(WHITE)
+        screen.blit(text, (200, 180))
+        pygame.display.flip()
+    
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    waiting = False
+                elif event.type == pygame.KEYDOWN:
+                    # 게임 상태 초기화
+                    x, y = WIDTH // 2, HEIGHT // 2
+                    dx, dy = 0, 0
+                    snake = [(x, y)]
+                    food_x, food_y = new_food()
+                    is_game_over = False  
+                    waiting = False
+
     pygame.display.flip()
-    clock.tick(10)
+    clock.tick(30)
 
 pygame.quit()
