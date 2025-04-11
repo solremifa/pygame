@@ -20,6 +20,9 @@ char_jump_img = pygame.transform.scale(char_jump_img, (200, 200))
 char_slide_img = pygame.image.load('dino_assets/char_slide.png')
 char_slide_img = pygame.transform.scale(char_slide_img, (200, 250))
 
+char_dead_img = pygame.image.load('dino_assets/char_dead.png')
+char_dead_img = pygame.transform.scale(char_dead_img, (200, 200))
+
 # 공룡 위치(논리적 위치 기준)
 dino = pygame.Rect(50, HEIGHT - 60, 60, 60)
 
@@ -36,6 +39,10 @@ def create_obstacle():
 
 obstacle_type, obstacle, obstacle_hitbox = create_obstacle()
 obstacle_speed = 7
+
+# 게임 상태 설정
+is_game_over = False
+
 
 # 점프 관련 변수
 gravity = 1
@@ -77,6 +84,8 @@ while running:
         active_img = char_jump_img
     elif is_sliding:
         active_img = char_slide_img
+    elif is_game_over:
+        active_img = char_dead_img
     else:
         active_img = char_run_img
 
@@ -113,7 +122,32 @@ while running:
             pass  # 점프로 회피 성공
         else:
             print("충돌!")
-            running = False
+            is_game_over = True
+            
+    # 7. 충돌시 게임 멈춤
+    if is_game_over:
+        font = pygame.font.SysFont(None, 48)
+        text = font.render("Game Over - Press Enter to Restart", True, (255, 0, 0))
+        screen.fill(WHITE)
+        screen.blit(char_dead_img, (dino.x, draw_y))
+        pygame.draw.rect(screen, (0, 0, 0), obstacle)
+        screen.blit(text, (200, 180))
+        pygame.display.flip()
+        
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    waiting = False
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    dino.y = HEIGHT - 60
+                    is_jumping = False
+                    is_sliding = False
+                    velocity = 0
+                    obstacle_type, obstacle, obstacle_hitbox = create_obstacle()
+                    is_game_over = False
+                    waiting = False
 
     pygame.display.flip()
     clock.tick(60)
