@@ -11,8 +11,16 @@ clock = pygame.time.Clock()
 WHITE = (255, 255, 255)
 
 # 이미지 불러오기 및 크기 조정
-char_run_img = pygame.image.load('dino_assets/char_run.png')
-char_run_img = pygame.transform.scale(char_run_img, (200, 200))
+# char_run1_img = pygame.image.load('dino_assets/char_run1.png')
+# char_run1_img = pygame.transform.scale(char_run1_img, (200, 200))
+
+run_frames = [
+    pygame.transform.scale(pygame.image.load('dino_assets/run_1.png'), (200, 200)),
+    pygame.transform.scale(pygame.image.load('dino_assets/run_2.png'), (200, 200)),
+    pygame.transform.scale(pygame.image.load('dino_assets/run_3.png'), (200, 200)),
+    pygame.transform.scale(pygame.image.load('dino_assets/run_4.png'), (200, 200)),
+    pygame.transform.scale(pygame.image.load('dino_assets/run_5.png'), (200, 200))
+]
 
 char_jump_img = pygame.image.load('dino_assets/char_jump.png')
 char_jump_img = pygame.transform.scale(char_jump_img, (200, 200))
@@ -22,6 +30,10 @@ char_slide_img = pygame.transform.scale(char_slide_img, (200, 250))
 
 char_dead_img = pygame.image.load('dino_assets/char_dead.png')
 char_dead_img = pygame.transform.scale(char_dead_img, (200, 200))
+
+frame_index = 0
+frame_timer = 0
+frame_interval = 7
 
 # 공룡 위치(논리적 위치 기준)
 dino = pygame.Rect(50, HEIGHT - 60, 60, 60)
@@ -42,7 +54,9 @@ obstacle_speed = 7
 
 # 게임 상태 설정
 is_game_over = False
-
+score = 0
+level = 1
+frame_count = 0
 
 # 점프 관련 변수
 gravity = 1
@@ -87,7 +101,7 @@ while running:
     elif is_game_over:
         active_img = char_dead_img
     else:
-        active_img = char_run_img
+        active_img = run_frames[frame_index]
 
     draw_y = dino.y - active_img.get_height() + dino.height + 20
     screen.blit(active_img, (dino.x, draw_y))
@@ -127,7 +141,7 @@ while running:
     # 7. 충돌시 게임 멈춤
     if is_game_over:
         font = pygame.font.SysFont(None, 48)
-        text = font.render("Game Over - Press Enter to Restart", True, (255, 0, 0))
+        text = font.render("Game Over - Press Any key to Restart", True, (255, 0, 0))
         screen.fill(WHITE)
         screen.blit(char_dead_img, (dino.x, draw_y))
         pygame.draw.rect(screen, (0, 0, 0), obstacle)
@@ -140,7 +154,7 @@ while running:
                 if event.type == pygame.QUIT:
                     running = False
                     waiting = False
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                elif event.type == pygame.KEYDOWN: #and event.key == pygame.K_RETURN:
                     dino.y = HEIGHT - 60
                     is_jumping = False
                     is_sliding = False
@@ -148,7 +162,37 @@ while running:
                     obstacle_type, obstacle, obstacle_hitbox = create_obstacle()
                     is_game_over = False
                     waiting = False
+                    score = 0
+                    level = 1
+                    frame_count = 0
+                    frame_interval = 8
+                    obstacle_speed = 7 
+                    
 
+    # 점수 시스템
+    frame_count += 1
+    if frame_count % 60 == 0:  # 1초당 1점 (FPS = 60 기준)
+        score += 10
+
+    # 레벨업 조건
+        if score % 100 == 0:
+            level += 1
+            obstacle_speed += 2
+            frame_interval -= 1
+            if frame_interval <= 4:
+                frame_interval = 4
+            print(f"LEVEL UP! Speed: {obstacle_speed}")
+
+    frame_timer += 1
+    if frame_timer >= frame_interval:
+        frame_index = (frame_index + 1) % len(run_frames)
+        frame_timer = 0
+    
+    
+    score_font = pygame.font.SysFont(None, 36)
+    score_text = score_font.render(f"Score: {score}", True, (0, 0, 0))
+    screen.blit(score_text, (10, 10))
+    
     pygame.display.flip()
     clock.tick(60)
 
