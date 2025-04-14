@@ -10,10 +10,9 @@ clock = pygame.time.Clock()
 
 WHITE = (255, 255, 255)
 
-# 이미지 불러오기 및 크기 조정
-# char_run1_img = pygame.image.load('dino_assets/char_run1.png')
-# char_run1_img = pygame.transform.scale(char_run1_img, (200, 200))
 
+
+# 달리는 이미지 프레임
 run_frames = [
     pygame.transform.scale(pygame.image.load('dino_assets/run_1.png'), (200, 200)),
     pygame.transform.scale(pygame.image.load('dino_assets/run_2.png'), (200, 200)),
@@ -145,7 +144,7 @@ while running:
         screen.fill(WHITE)
         screen.blit(char_dead_img, (dino.x, draw_y))
         pygame.draw.rect(screen, (0, 0, 0), obstacle)
-        screen.blit(text, (200, 180))
+        screen.blit(text, (100, 180))
         pygame.display.flip()
         
         waiting = True
@@ -179,6 +178,7 @@ while running:
             level += 1
             obstacle_speed += 2
             frame_interval -= 1
+            # 달리는 모션도 따라서 가속
             if frame_interval <= 4:
                 frame_interval = 4
             print(f"LEVEL UP! Speed: {obstacle_speed}")
@@ -190,8 +190,11 @@ while running:
     
     
     score_font = pygame.font.SysFont(None, 36)
+    level_font = pygame.font.SysFont(None, 36)
     score_text = score_font.render(f"Score: {score}", True, (0, 0, 0))
+    level_text = level_font.render(f"Level: {level}", True, (0, 0, 0))
     screen.blit(score_text, (10, 10))
+    screen.blit(level_text, (10, 35))
     
     pygame.display.flip()
     clock.tick(60)
